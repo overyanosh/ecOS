@@ -46,39 +46,29 @@ jobs:
           podman tag ecos:latest "$IMAGE_URL"
           podman push "$IMAGE_URL"
 
-      # ====================================================
+        # ====================================================
       # PHASE 2: Build bootable disk image with bootc-image-builder
       # ====================================================
       - name: Pull bootc-image-builder
         run: |
-          podman pull quay.io/centos-bootc/bootc-image-builder:latest
+          sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
 
-      - name: Pull ecos image from GHCR
+      - name: Pull ecos image from GHCR (as root)
         run: |
-          podman pull ghcr.io/overyanosh/ecos:latest
-
-      - name: Create auth.json for bootc-image-builder
-        run: |
-          mkdir -p ./bib-work
-          echo "${{ secrets.GHCR_PAT }}" | podman login ghcr.io \
-            -u overyanosh --password-stdin \
-            --authfile ./bib-work/auth.json
-          # S'assurer que le fichier est lisible par le container
-          chmod 644 ./bib-work/auth.json
+          echo "${{ secrets.GHCR_PAT }}" | sudo podman login ghcr.io \
+            -u overyanosh --password-stdin
+          sudo podman pull ghcr.io/overyanosh/ecos:latest
 
       - name: Build bootable disk image (RAW)
         run: |
           mkdir -p ./output
           sudo podman run --rm --privileged \
-            --security-opt label=type:unconfined_t \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             -v $(pwd)/output:/output \
-            -v $(pwd)/bib-work/auth.json:/run/containers/0/auth.json \
             quay.io/centos-bootc/bootc-image-builder:latest \
             ghcr.io/overyanosh/ecos:latest \
             --type raw \
             --rootfs xfs \
-            --chown 1001:127 \
             --verbose
 
       - name: Compress disk image
