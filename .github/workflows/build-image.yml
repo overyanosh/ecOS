@@ -1,0 +1,61 @@
+name: Build ecOS Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'container/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Build container image
+        run: |
+          podman build -t ecos:latest -f container/Containerfile .
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io \
+            -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        run: |
+          IMAGE_URL="ghcr.io/${{ github.repository }}:latest"
+          podman tag ecos:latest "$IMAGE_URL"
+          podman push "$IMAGE_URL"
+
+      - name: Build bootable disk image
+        run: |
+          sudo apt-get install -y bootc-image-builder
+          sudo bootc-image-builder \
+            --type disk \
+            --output ./output/ecos-x86_64.raw \
+            ghcr.io/${{ github.repository }}:latest
+
+      - name: Compress image
+        run: xz -v -T0 ./output/ecos-x86_64.raw
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecos-usb-image
+          path: ./output/ecos-x86_64.raw.xz
+          retention-days: 30

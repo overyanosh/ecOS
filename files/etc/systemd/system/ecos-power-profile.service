@@ -1,0 +1,10 @@
+[Unit]
+Description=ecOS — Apply gaming power profile
+After=tuned.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/tuned-adm profile ecos-gaming
+
+[Install]
+WantedBy=multi-user.target

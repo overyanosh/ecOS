@@ -1,0 +1,16 @@
+[Unit]
+Description=ecOS — Redirect logs and temp to tmpfs (USB preservation)
+After=ecos-immutable.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c '\
+    mkdir -p /tmp/ecos-overlay && \
+    mount -t tmpfs -o size=512M tmpfs /var/log/journal 2>/dev/null || true && \
+    mount -t tmpfs -o size=256M tmpfs /tmp 2>/dev/null || true && \
+    mount -t tmpfs -o size=128M tmpfs /var/tmp 2>/dev/null || true && \
+    mount -t tmpfs -o size=64M tmpfs /var/cache 2>/dev/null || true'
+
+[Install]
+WantedBy=multi-user.target
