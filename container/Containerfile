@@ -7,17 +7,18 @@ LABEL org.opencontainers.image.source="https://github.com/overyanosh/ecOS"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 
 # ============================================================
-# 1. ENABLE REPOSITORIES (AppStream pour les paquets utilitaires)
+# 1. ENABLE REPOSITORIES — CRB + EPEL
 # ============================================================
-RUN dnf config-manager --set-enabled crb 2>/dev/null || true
+RUN dnf -y install epel-release && \
+    dnf config-manager --set-enabled crb && \
+    dnf -y update
 
 # ============================================================
 # 2. PACKAGES — Virtualisation + GPU passthrough + RAID + réseau
 # ============================================================
-RUN dnf -y update && dnf -y install \
+RUN dnf -y install \
     qemu-kvm \
     qemu-img \
-    qemu-common \
     libvirt \
     libvirt-daemon \
     libvirt-daemon-config-network \
@@ -26,17 +27,13 @@ RUN dnf -y update && dnf -y install \
     libvirt-daemon-driver-storage-core \
     libvirt-daemon-driver-storage-disk \
     libvirt-daemon-driver-storage-logical \
-    libvirt-daemon-driver-storage-filesystem \
     libvirt-daemon-driver-storage-iscsi \
     libvirt-client \
     virt-install \
     virt-xml \
     virt-viewer \
-    spice-server \
-    spice-protocol \
     virtio-win \
     bridge-utils \
-    vlan \
     iptables-nft \
     iproute \
     iputils \
@@ -52,7 +49,6 @@ RUN dnf -y update && dnf -y install \
     tuned-profiles-cpu-partitioning \
     lm_sensors \
     dmidecode \
-    edk2-aarch64 \
     edk2-ovmf \
     swtpm \
     swtpm-tools \
@@ -88,7 +84,6 @@ RUN dnf -y update && dnf -y install \
 # ============================================================
 
 COPY files/etc/dracut.conf.d/vfio.conf /etc/dracut.conf.d/vfio.conf
-
 COPY files/etc/modprobe.d/vfio.conf /etc/modprobe.d/vfio.conf
 COPY files/etc/modprobe.d/blacklist.conf /etc/modprobe.d/blacklist.conf
 
@@ -153,7 +148,7 @@ RUN systemctl enable libvirtd && \
     systemctl enable NetworkManager
 
 # ============================================================
-# 10. USER — root locked, admin user créé au firstboot
+# 10. USER — root locked
 # ============================================================
 
 RUN passwd -l root
@@ -164,5 +159,4 @@ RUN passwd -l root
 
 COPY files/etc/bootc/ /etc/bootc/
 
-# Final
 USER root
