@@ -46,7 +46,7 @@ jobs:
           podman tag ecos:latest "$IMAGE_URL"
           podman push "$IMAGE_URL"
 
-        # ====================================================
+      # ====================================================
       # PHASE 2: Build bootable disk image with bootc-image-builder
       # ====================================================
       - name: Pull bootc-image-builder
@@ -59,9 +59,18 @@ jobs:
             -u overyanosh --password-stdin
           sudo podman pull ghcr.io/overyanosh/ecos:latest
 
+      - name: Inspect ecos image (debug)
+        run: |
+          echo "=== Image info ==="
+          sudo podman images
+          echo ""
+          echo "=== Image inspect ==="
+          sudo podman inspect ghcr.io/overyanosh/ecos:latest | head -50
+
       - name: Build bootable disk image (RAW)
         run: |
           mkdir -p ./output
+          echo "=== Starting bootc-image-builder ==="
           sudo podman run --rm --privileged \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             -v $(pwd)/output:/output \
@@ -69,9 +78,19 @@ jobs:
             ghcr.io/overyanosh/ecos:latest \
             --type raw \
             --rootfs xfs \
-            --verbose
+            --verbose 2>&1 | tee ./output/build.log
+
+      - name: Show full build log on failure
+        if: failure()
+        run: |
+          echo "=== Full build log ==="
+          cat ./output/build.log || echo "No log file found"
+          echo ""
+          echo "=== Output directory ==="
+          ls -la ./output/ || true
 
       - name: Compress disk image
+        if: success()
         run: |
           if [[ -f ./output/disk.raw ]]; then
             mv ./output/disk.raw ./output/ecos-x86_64.raw
@@ -86,6 +105,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ecos-usb-image
-          path: ./output/*.raw*
+          path: ./output/*
           retention-days: 30
           if-no-files-found: warn
