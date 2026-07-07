@@ -1,4 +1,4 @@
-name: Build ecos Image
+name: Build ecOS Image
 
 on:
   push:
@@ -9,8 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPOSITORY: ${{ github.repository }}
-  IMAGE_NAME: ecos    # ⬅️ Toujours en minuscules pour GHCR
+  IMAGE_NAME: ecos
   IMAGE_TAG: latest
 
 jobs:
@@ -33,26 +32,25 @@ jobs:
         run: |
           podman build -t ecos:latest -f container/Containerfile .
 
-      - name: Login to GHCR
+      - name: Login to GHCR with PAT
         run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | podman login ghcr.io \
-            -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GHCR_PAT }}" | podman login ghcr.io \
+            -u overyanosh --password-stdin
 
       - name: Tag and Push image
-        env:
-          IMAGE_URL: "ghcr.io/${{ github.repository_owner }}/ecos:${{ env.IMAGE_TAG }}"
         run: |
+          IMAGE_URL="ghcr.io/overyanosh/ecos:latest"
           podman tag ecos:latest "$IMAGE_URL"
           podman push "$IMAGE_URL"
 
-      - name: Build bootable disk image (if needed)
+      - name: Build bootable disk image
         run: |
           sudo apt-get install -y bootc-image-builder || true
           sudo bootc-image-builder \
             --type disk \
             --output ./output/ecos-x86_64.raw \
             --arch x86_64 \
-            "ghcr.io/${{ github.repository_owner }}/ecos:${{ env.IMAGE_TAG }}" || \
+            "ghcr.io/overyanosh/ecos:latest" || \
             echo "[WARN] bootc-image-builder not available or failed"
 
       - name: Compress image
