@@ -59,34 +59,31 @@ echo "[ecOS] Creating admin user..."
 ADMIN_USER="ecos-admin"
 
 # Créer l'utilisateur avec home et shell
-useradd -m -s /bin/bash -G wheel,libvirt "$ADMIN_USER" 2>/dev/null || true
+useradd -m -s /bin/bash -G wheel,libvirt "$ADMIN_USER" || true
 
 # Générer une clé SSH si aucune n'est fournie
+# (en production, on injecterait la clé via cloud-init ou un fichier)
 mkdir -p "/home/$ADMIN_USER/.ssh"
 chmod 700 "/home/$ADMIN_USER/.ssh"
 
 # Si une clé publique est présente sur une partition de config (USB secondaire)
 # on la copie, sinon on génère une paire de clés et on affiche la publique
-if ls /run/media/*/ecos-ssh.pub 2>/dev/null; then
+if [[ -f /run/media/*/ecos-ssh.pub ]]; then
     cp /run/media/*/ecos-ssh.pub "/home/$ADMIN_USER/.ssh/authorized_keys"
     echo "[ecOS] SSH public key found on USB config partition"
-    # Mot de passe désactivé, clé uniquement
-    passwd -l "$ADMIN_USER" 2>/dev/null || true
 else
-    # Pas de clé USB de config → mot de passe temporaire
+    ssh-keygen -t ed25519 -f "/home/$ADMIN_USER/.ssh/id_ed25519" -N "" -C "ecos-admin"
+    cp "/home/$ADMIN_USER/.ssh/id_ed25519.pub" "/home/$ADMIN_USER/.ssh/authorized_keys"
+    echo ""
     echo "[ecOS] No SSH key found on config partition."
-    echo "[ecOS] Setting temporary password for $ADMIN_USER..."
-    echo "ecos-admin:ecos" | chpasswd
+    echo "[ecOS] Generated key pair for $ADMIN_USER."
+    echo "[ecOS] Public key:"
+    cat "/home/$ADMIN_USER/.ssh/id_ed25519.pub"
     echo ""
-    echo "============================================"
-    echo "  ⚠️  TEMPORARY PASSWORD: ecos"
-    echo "  ⚠️  CHANGE IT IMMEDIATELY after login!"
-    echo "  ⚠️  Run: passwd"
-    echo "============================================"
-    echo ""
+    echo "[ecOS] Retrieve this key to connect via SSH!"
 fi
 
-chmod 600 "/home/$ADMIN_USER/.ssh/authorized_keys" 2>/dev/null || true
+chmod 600 "/home/$ADMIN_USER/.ssh/authorized_keys"
 chown -R "$ADMIN_USER:$ADMIN_USER" "/home/$ADMIN_USER/.ssh"
 
 # Activer l'utilisateur dans AllowUsers
@@ -94,5 +91,6 @@ sed -i "s/^#AllowUsers.*/AllowUsers $ADMIN_USER/" /etc/ssh/sshd_config.d/ecos.co
 
 echo "[ecOS] Admin user '$ADMIN_USER' created."
 sleep 5
+
 
 reboot
