@@ -11,7 +11,7 @@
   <sub>Immutable • Bootable USB • Multi-GPU Passthrough</sub>
 </div>
 
-<h1 align="center">🐻 ecos</h1>
+<h1 align="center">🐻 ecOS</h1>
 
 <p align="center">
   <strong>Système immuable dédié à l'hébergement de machines virtuelles gaming multi-GPU</strong>
