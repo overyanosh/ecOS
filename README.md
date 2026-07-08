@@ -230,4 +230,4 @@ GitHub: @overyanosh
     Phase 4 — Contrôle LED/ventilos
     Phase 5 — CPU pinning UI, power profiles slider
 
-ecOS — Parce que Proxmox et Unraid ne faisaient pas exactement ça !
+ecOS — Parce que d'autre ne faisaient pas exactement correctement !
