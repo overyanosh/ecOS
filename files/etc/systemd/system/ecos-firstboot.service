@@ -1,13 +1,14 @@
 [Unit]
-Description=ecos — First boot configuration
-After=network-online.target
-Wants=network-online.target
+Description=ecOS — First boot configuration
+After=local-fs.target
+Before=multi-user.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/ecos-firstboot.sh
-# Ne se relance qu'au prochain flash de clé
-ConditionPathExists=!/var/lib/ecos/.firstboot-done
+RemainAfterExit=yes
+# Ne pas bloquer le boot si le script échoue
+SuccessExitStatus=0 1
 
 [Install]
 WantedBy=multi-user.target

@@ -179,6 +179,10 @@ RUN systemctl enable libvirtd && \
 # 10. USER — root locked
 # ============================================================
 
+# Créer l'utilisateur directement dans l'image
+RUN useradd -m -s /bin/bash -G wheel,libvirt ecos-admin && \
+    echo "ecos-admin:ecos" | chpasswd
+    
 RUN passwd -l root
 
 # ============================================================
