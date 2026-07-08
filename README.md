@@ -198,7 +198,7 @@ Premier boot
         Reboot automatique
     Après reboot, le système est prêt — connectez-vous via SSH
 
-ssh ecos-admin@<ip-du-serveur>
+ssh ecos-admin@\<ip-du-serveur\>
 
 🔧 Configuration GPU passthrough
 
