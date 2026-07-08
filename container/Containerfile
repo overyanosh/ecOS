@@ -92,6 +92,13 @@ RUN mkdir -p /etc/ssh/sshd_config.d
 COPY files/etc/ssh/sshd_config.d/ecos.conf /etc/ssh/sshd_config.d/ecos.conf
 
 # ============================================================
+# 2c. LOGO & GRUB SETUP
+# ============================================================
+COPY files/assets/ecos-logo.png /usr/share/ecos/splash.png
+COPY files/usr/local/bin/ecos-grub-setup.sh /usr/local/bin/ecos-grub-setup.sh
+RUN chmod +x /usr/local/bin/ecos-grub-setup.sh
+
+# ============================================================
 # 2c. iSCSI CONFIGURATION
 # ============================================================
 COPY files/etc/iscsi/iscsid.conf /etc/iscsi/iscsid.conf
