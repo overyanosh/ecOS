@@ -164,24 +164,24 @@ Build local
 podman build -t ecos:latest -f container/Containerfile .
 
 # 2. Génération de l'image disque bootable
-sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
-sudo podman run --rm --privileged \
-  -v /var/lib/containers/storage:/var/lib/containers/storage \
-  -v $(pwd)/output:/output \
-  quay.io/centos-bootc/bootc-image-builder:latest \
-  ecos:latest \
-  --type raw \
-  --rootfs xfs \
-  --verbose
+        sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
+        sudo podman run --rm --privileged \
+        -v /var/lib/containers/storage:/var/lib/containers/storage \
+        -v $(pwd)/output:/output \
+        quay.io/centos-bootc/bootc-image-builder:latest \
+        ecos:latest \
+        --type raw \
+        --rootfs xfs \
+        --verbose
 
-Flash sur clé USB
+# Flash sur clé USB
 
-# Identifier la clé USB
+## Identifier la clé USB
 lsblk
 
-# Flasher
-sudo dd if=output/disk.raw of=/dev/sdX bs=4M status=progress conv=fsync
-sync
+## Flasher
+        sudo dd if=output/disk.raw of=/dev/sdX bs=4M status=progress conv=fsync
+        sync
 
 Premier boot
 
